@@ -60,19 +60,19 @@ export interface Recipe {
     name: string | QualityString[];
     ingredients: Ingredient[];
 
-    cookingtime: number;
-    distillruns?: number;
-    distilltime?: number;
+    cookingTime: number;
+    distillRuns?: number;
+    distillTime?: number;
     wood?: WoodType;
     age?: number;
     color: string;
     difficulty: number;
     alcohol: number;
     lore?: QualityString | QualityString[];
-    servercommands?: string[];
-    playercommands?: string[];
-    drinkmessages?: string[];
-    drinktitle?: string;
+    serverCommands?: string[];
+    playerCommands?: string[];
+    drinkMessages?: string[];
+    drinkTitle?: string;
     glint?: boolean;
     customModelData?: QualityValue<number>[] | number;
     effects?: Effect[];
@@ -208,9 +208,9 @@ export function parseConfig(config: string): ConfigParseResult {
             recipes[id] = {
                 name: parseName(recipe.name),
                 ingredients: recipe.ingredients.map(parseIngredient),
-                cookingtime: recipe.cookingtime,
-                distillruns: recipe.distillruns,
-                distilltime: recipe.distilltime,
+                cookingTime: recipe.cookingtime,
+                distillRuns: recipe.distillruns,
+                distillTime: recipe.distilltime,
                 wood: WOOD_TYPE_NAMES[recipe.wood || 0],
                 age: recipe.age,
                 color: recipe.color,
@@ -221,10 +221,10 @@ export function parseConfig(config: string): ConfigParseResult {
                     (typeof recipe.lore === "string"
                         ? parseQualityString(recipe.lore)
                         : recipe.lore.map(parseQualityString)),
-                servercommands: recipe.servercommands?.map(parseQualityString),
-                playercommands: recipe.playercommands?.map(parseQualityString),
-                drinkmessages: recipe.drinkmessages,
-                drinktitle: recipe.drinktitle,
+                serverCommands: recipe.servercommands?.map(parseQualityString),
+                playerCommands: recipe.playercommands?.map(parseQualityString),
+                drinkMessages: recipe.drinkmessages,
+                drinkTitle: recipe.drinktitle,
                 glint: recipe.glint,
                 customModelData: recipe.customModelData && parseCustomModelData(recipe.customModelData),
                 effects: recipe.effects?.map(parseEffect),
