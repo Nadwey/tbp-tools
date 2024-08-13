@@ -5,8 +5,7 @@ import tailwind from "@astrojs/tailwind";
 
 // https://astro.build/config
 export default defineConfig({
-    site: "https://nadwey.github.io",
-    base: "/tbp-tools",
+    site: "https://tbp-tools.nadwey.pl",
     integrations: [
         react(),
         tailwind({
