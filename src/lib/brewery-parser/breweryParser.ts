@@ -55,7 +55,7 @@ interface QualityString {
 }
 
 export interface Recipe {
-    name: string;
+    name: string | QualityString[];
     ingredients: Ingredient[];
 
     cookingtime: number;
@@ -80,6 +80,28 @@ export interface BreweryConfig {
     recipes: {
         [id: string]: Recipe;
     };
+}
+
+/**
+ * According to the Brewery plugin, the name object should be something like: bad: string, normal: string, good: string
+ * But maybe the new Brewery will introduce a new way to handle this... So we parse it as an array with the quality
+ */
+function parseName(name: string): string | QualityString[] {
+    if (!name.includes("/"))
+        return name;
+
+    const qualityStrings: QualityString[] = [];
+    let quality = 0;
+
+    name.split("/").forEach((part) => {
+        qualityStrings.push({
+            quality,
+            value: part,
+        });
+        quality++;
+    });
+
+    return qualityStrings;
 }
 
 function parseIngredient(ingredient: string): Ingredient {
@@ -143,7 +165,7 @@ export function parseConfig(config: string): BreweryConfig {
         const recipe = parsed.recipes[id];
 
         recipes[id] = {
-            name: recipe.name,
+            name: parseName(recipe.name),
             ingredients: recipe.ingredients.map(parseIngredient),
             cookingtime: recipe.cookingtime,
             distillruns: recipe.distillruns,
@@ -153,7 +175,11 @@ export function parseConfig(config: string): BreweryConfig {
             color: recipe.color,
             difficulty: recipe.difficulty,
             alcohol: recipe.alcohol,
-            lore: recipe.lore && (typeof recipe.lore === "string" ? parseQualityString(recipe.lore) : recipe.lore.map(parseQualityString)),
+            lore:
+                recipe.lore &&
+                (typeof recipe.lore === "string"
+                    ? parseQualityString(recipe.lore)
+                    : recipe.lore.map(parseQualityString)),
             servercommands: recipe.servercommands?.map(parseQualityString),
             playercommands: recipe.playercommands?.map(parseQualityString),
             drinkmessages: recipe.drinkmessages,
