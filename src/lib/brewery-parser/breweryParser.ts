@@ -160,38 +160,97 @@ function parseCustomModelData(customModelData: string | number): QualityValue<nu
     }));
 }
 
-export function parseConfig(config: string): BreweryConfig {
-    const parsed = YAML.parse(config);
-    const recipes: { [id: string]: Recipe } = {};
-    for (const id of Object.keys(parsed.recipes)) {
-        const recipe = parsed.recipes[id];
+interface ConfigParseResult {
+    success: boolean;
+    config?: BreweryConfig;
+    error?: {
+        stage: string;
+        message: string;
+        stack?: string;
+    };
+}
 
-        recipes[id] = {
-            name: parseName(recipe.name),
-            ingredients: recipe.ingredients.map(parseIngredient),
-            cookingtime: recipe.cookingtime,
-            distillruns: recipe.distillruns,
-            distilltime: recipe.distilltime,
-            wood: WOOD_TYPE_NAMES[recipe.wood || 0],
-            age: recipe.age,
-            color: recipe.color,
-            difficulty: recipe.difficulty,
-            alcohol: recipe.alcohol,
-            lore:
-                recipe.lore &&
-                (typeof recipe.lore === "string"
-                    ? parseQualityString(recipe.lore)
-                    : recipe.lore.map(parseQualityString)),
-            servercommands: recipe.servercommands?.map(parseQualityString),
-            playercommands: recipe.playercommands?.map(parseQualityString),
-            drinkmessages: recipe.drinkmessages,
-            drinktitle: recipe.drinktitle,
-            glint: recipe.glint,
-            customModelData: recipe.customModelData && parseCustomModelData(recipe.customModelData),
-            effects: recipe.effects?.map(parseEffect),
+function checkConfig(config: any) {
+    if (config === null) throw new Error(`config is null,\nyou probably pasted an empty string`);
+
+    if (typeof config !== "object")
+        throw new Error(`config is not an object, it's a ${typeof config}\nfor some reason...`);
+
+    if (config.recipes === undefined)
+        throw new Error(
+            `recipes not found,\nmake sure you pasted the entire config,\nor at least the entire "recipes" object including the key`,
+        );
+
+    if (config.recipes === null)
+        throw new Error(
+            `recipes is null,\nthis can happen if you only pasted the key "recipes" without the object`,
+        );
+
+    if (typeof config.recipes !== "object")
+        throw new Error(`recipes is not an object, it's a ${typeof config.recipes}`);
+}
+
+export function parseConfig(config: string): ConfigParseResult {
+    let stage = "warming up";
+    try {
+        stage = "parsing yaml";
+        const parsed = YAML.parse(config);
+
+        stage = "checking config";
+        checkConfig(parsed);
+
+        stage = "parsing recipes";
+        const recipes: { [id: string]: Recipe } = {};
+        for (const id of Object.keys(parsed.recipes)) {
+            stage = `parsing recipe with id "${id}"`;
+            const recipe = parsed.recipes[id];
+
+            recipes[id] = {
+                name: parseName(recipe.name),
+                ingredients: recipe.ingredients.map(parseIngredient),
+                cookingtime: recipe.cookingtime,
+                distillruns: recipe.distillruns,
+                distilltime: recipe.distilltime,
+                wood: WOOD_TYPE_NAMES[recipe.wood || 0],
+                age: recipe.age,
+                color: recipe.color,
+                difficulty: recipe.difficulty,
+                alcohol: recipe.alcohol,
+                lore:
+                    recipe.lore &&
+                    (typeof recipe.lore === "string"
+                        ? parseQualityString(recipe.lore)
+                        : recipe.lore.map(parseQualityString)),
+                servercommands: recipe.servercommands?.map(parseQualityString),
+                playercommands: recipe.playercommands?.map(parseQualityString),
+                drinkmessages: recipe.drinkmessages,
+                drinktitle: recipe.drinktitle,
+                glint: recipe.glint,
+                customModelData: recipe.customModelData && parseCustomModelData(recipe.customModelData),
+                effects: recipe.effects?.map(parseEffect),
+            };
+        }
+        return {
+            success: true,
+            config: {
+                recipes,
+            },
+        };
+    } catch (error) {
+        let message = "??? - check console";
+        let stack = "stack not available";
+        if (error instanceof Error) {
+            message = error.message;
+            stack = error.stack || "??? - check console";
+        }
+
+        return {
+            success: false,
+            error: {
+                stage,
+                message,
+                stack,
+            },
         };
     }
-    return {
-        recipes,
-    };
 }
