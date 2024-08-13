@@ -1,0 +1,28 @@
+---
+import NavBar from "../components/NavBar.astro";
+import "@/styles/globals.css";
+
+interface Props {
+    title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html class="dark" lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="description" content="Tools for The Brewing Project" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+    </head>
+    <body>
+        <NavBar />
+        <div class="mt-[var(--navbar-height)]">
+            <slot />
+        </div>
+    </body>
+</html>

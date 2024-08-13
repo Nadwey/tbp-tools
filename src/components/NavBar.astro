@@ -1,0 +1,37 @@
+---
+import { Image } from "astro:assets";
+import logo from "../img/the-brewing-project-logo.png";
+import githubLogo from "../img/github-mark-white.png";
+
+const links = [{ name: "Brewery Parser", href: "/brewery-parser" }];
+
+const social = [{ href: "https://github.com/Nadwey/tbp-tools", icon: githubLogo }];
+---
+
+<div
+    class="fixed left-0 top-0 right-0 h-[var(--navbar-height)] border-b border-b-zinc-800 flex justify-between items-center px-4 py-2"
+>
+    <div class="flex items-center gap-2">
+        <div class="flex items-center">
+            <Image src={logo} alt="The Brewing Project Logo" class="h-8 w-8" />
+            <a href="/" class="text-2xl font-black">TBP Tools</a>
+        </div>
+
+        {
+            links.map((link) => (
+                <a href={link.href} class="ml-4">
+                    {link.name}
+                </a>
+            ))
+        }
+    </div>
+    <div class="flex items-center gap-1">
+        {
+            social.map((link) => (
+                <a href={link.href} target="_blank">
+                    <Image src={link.icon} alt="GitHub Logo" class="h-6 w-6" />
+                </a>
+            ))
+        }
+    </div>
+</div>
