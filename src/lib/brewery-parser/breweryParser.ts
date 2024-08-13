@@ -49,10 +49,12 @@ interface Effect {
     duration: number | EffectRange;
 }
 
-interface QualityString {
+interface QualityValue<T> {
     quality: number;
-    value: string;
+    value: T;
 }
+
+type QualityString = QualityValue<string>;
 
 export interface Recipe {
     name: string | QualityString[];
@@ -72,7 +74,7 @@ export interface Recipe {
     drinkmessages?: string[];
     drinktitle?: string;
     glint?: boolean;
-    customModelData?: number[];
+    customModelData?: QualityValue<number>[] | number;
     effects?: Effect[];
 }
 
@@ -87,21 +89,12 @@ export interface BreweryConfig {
  * But maybe the new Brewery will introduce a new way to handle this... So we parse it as an array with the quality
  */
 function parseName(name: string): string | QualityString[] {
-    if (!name.includes("/"))
-        return name;
+    if (!name.includes("/")) return name;
 
-    const qualityStrings: QualityString[] = [];
-    let quality = 0;
-
-    name.split("/").forEach((part) => {
-        qualityStrings.push({
-            quality,
-            value: part,
-        });
-        quality++;
-    });
-
-    return qualityStrings;
+    return name.split("/").map((part, index) => ({
+        quality: index,
+        value: part,
+    }));
 }
 
 function parseIngredient(ingredient: string): Ingredient {
@@ -158,6 +151,15 @@ function parseQualityString(qualityString: string): QualityString {
     };
 }
 
+function parseCustomModelData(customModelData: string | number): QualityValue<number>[] | number {
+    if (typeof customModelData === "number") return customModelData;
+
+    return customModelData.split("/").map((part, index) => ({
+        quality: index,
+        value: parseInt(part),
+    }));
+}
+
 export function parseConfig(config: string): BreweryConfig {
     const parsed = YAML.parse(config);
     const recipes: { [id: string]: Recipe } = {};
@@ -185,7 +187,7 @@ export function parseConfig(config: string): BreweryConfig {
             drinkmessages: recipe.drinkmessages,
             drinktitle: recipe.drinktitle,
             glint: recipe.glint,
-            customModelData: recipe.customModelData?.split("/").map(parseInt),
+            customModelData: recipe.customModelData && parseCustomModelData(recipe.customModelData),
             effects: recipe.effects?.map(parseEffect),
         };
     }
