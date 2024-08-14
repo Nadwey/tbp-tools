@@ -182,9 +182,7 @@ function checkConfig(config: any) {
         );
 
     if (config.recipes === null)
-        throw new Error(
-            `recipes is null,\nthis can happen if you only pasted the key "recipes" without the object`,
-        );
+        throw new Error(`recipes is null,\nthis can happen if you only pasted the key "recipes" without the object`);
 
     if (typeof config.recipes !== "object")
         throw new Error(`recipes is not an object, it's a ${typeof config.recipes}`);
@@ -237,12 +235,12 @@ export function parseConfig(config: string): ConfigParseResult {
             },
         };
     } catch (error) {
-        let message = "??? - check console";
+        let message = "unexpected error, please check console and report it";
         let stack = "stack not available";
         if (error instanceof Error) {
             message = error.message;
             stack = error.stack || "??? - check console";
-        }
+        } else console.error(error);
 
         return {
             success: false,
