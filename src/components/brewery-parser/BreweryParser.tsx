@@ -53,7 +53,7 @@ ${parseResult.error?.stack
                         defaultValue={DEFAULT_YAML}
                     />
                 </ResizablePanel>
-                <ResizableHandle />
+                <ResizableHandle className="w-1" withHandle />
                 <ResizablePanel defaultSize={50}>
                     <Editor
                         theme="vs-dark"
