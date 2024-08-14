@@ -56,6 +56,14 @@ interface QualityValue<T> {
 
 type QualityString = QualityValue<string>;
 
+export interface CustomItem {
+    matchAny?: boolean;
+    material?: string | string[];
+    name: string | string[];
+    lore?: string | string[];
+    customModelData?: number[];
+}
+
 export interface Recipe {
     name: string | QualityString[];
     ingredients: Ingredient[];
@@ -79,6 +87,9 @@ export interface Recipe {
 }
 
 export interface BreweryConfig {
+    customItems?: {
+        [id: string]: CustomItem;
+    };
     recipes: {
         [id: string]: Recipe;
     };
@@ -197,6 +208,23 @@ export function parseConfig(config: string): ConfigParseResult {
         stage = "checking config";
         checkConfig(parsed);
 
+        stage = "parsing custom items";
+        const customItems: { [id: string]: CustomItem } = {};
+        if (parsed.customItems) {
+            for (const id of Object.keys(parsed.customItems)) {
+                stage = `parsing custom item with id "${id}"`;
+                const customItem = parsed.customItems[id];
+
+                customItems[id] = {
+                    matchAny: customItem.matchAny,
+                    material: customItem.material,
+                    name: customItem.name,
+                    lore: customItem.lore,
+                    customModelData: customItem.customModelData,
+                };
+            }
+        }
+
         stage = "parsing recipes";
         const recipes: { [id: string]: Recipe } = {};
         for (const id of Object.keys(parsed.recipes)) {
@@ -216,9 +244,9 @@ export function parseConfig(config: string): ConfigParseResult {
                 alcohol: recipe.alcohol,
                 lore:
                     recipe.lore &&
-                    (typeof recipe.lore === "string"
-                        ? parseQualityString(recipe.lore)
-                        : recipe.lore.map(parseQualityString)),
+                    (Array.isArray(recipe.lore)
+                        ? recipe.lore.map(parseQualityString)
+                        : parseQualityString(recipe.lore)),
                 serverCommands: recipe.servercommands?.map(parseQualityString),
                 playerCommands: recipe.playercommands?.map(parseQualityString),
                 drinkMessages: recipe.drinkmessages,
@@ -228,9 +256,11 @@ export function parseConfig(config: string): ConfigParseResult {
                 effects: recipe.effects?.map(parseEffect),
             };
         }
+
         return {
             success: true,
             config: {
+                customItems,
                 recipes,
             },
         };

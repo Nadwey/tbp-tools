@@ -3,6 +3,6 @@
 ## Brewery Parser
 
 - [x] Recipes
-- [ ] Custom Items
+- [x] Custom Items
 - [ ] Cauldron Items
 - [ ] Altered Words (maybe, depends on how the new system will work)
