@@ -12,7 +12,7 @@ export default {
             },
         },
         fontFamily: {
-            "manrope": ["Manrope", "sans-serif"],
+            manrope: ["Manrope", "sans-serif"],
         },
         extend: {
             colors: {
