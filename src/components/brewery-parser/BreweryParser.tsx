@@ -1,4 +1,4 @@
-import { parseConfig } from "@/lib/brewery-parser/breweryParser";
+import { ConfigParseResultState, parseConfig, type ConfigParseResultError } from "@/lib/brewery-parser/breweryParser";
 import { Editor } from "@monaco-editor/react";
 import { useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
@@ -11,32 +11,41 @@ const DEFAULT_JSON = `Your config as JSON will appear here
 And from JSON we will be able to generate the new YAML config
 `;
 
+function getErrorMessage(error?: ConfigParseResultError) {
+    return (
+        `Error during parsing
+
+---
+${error?.message}
+---
+
+If you think this is a bug, please report it, with this entire message
+stage: ${error?.stage}` +
+        (error?.stack &&
+            `\nstack:
+${error?.stack
+    .split("\n")
+    .map((line) => `    ${line}`)
+    .join("\n")}`)
+    );
+}
+
 export default function BreweryParser() {
     const [config, setConfig] = useState<string | null>();
 
     function onEditorChange(value: string | undefined) {
         const parseResult = parseConfig(value || "");
-        if (parseResult.success) {
+        if (parseResult.state === ConfigParseResultState.SUCCESS) {
             setConfig(JSON.stringify(parseResult.config, null, 4));
             return;
         }
 
-        setConfig(
-            `Error during parsing
+        if (parseResult.state === ConfigParseResultState.EMPTY) {
+            setConfig(DEFAULT_JSON);
+            return;
+        }
 
----
-${parseResult.error?.message}
----
-
-If you think this is a bug, please report it, with this entire message
-stage: ${parseResult.error?.stage}` +
-                (parseResult.error?.stack &&
-                    `\nstack:
-${parseResult.error?.stack
-    .split("\n")
-    .map((line) => `    ${line}`)
-    .join("\n")}`),
-        );
+        setConfig(getErrorMessage(parseResult.error));
     }
 
     return (

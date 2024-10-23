@@ -95,6 +95,24 @@ export interface BreweryConfig {
     };
 }
 
+export interface ConfigParseResultError {
+    stage: string;
+    message: string;
+    stack?: string;
+}
+
+export enum ConfigParseResultState {
+    SUCCESS,
+    ERROR,
+    EMPTY,
+}
+
+export interface ConfigParseResult {
+    state: ConfigParseResultState;
+    config?: BreweryConfig;
+    error?: ConfigParseResultError;
+}
+
 /**
  * According to the Brewery plugin, the name object should be something like: bad: string, normal: string, good: string
  * But maybe the new Brewery will introduce a new way to handle this... So we parse it as an array with the quality
@@ -171,18 +189,8 @@ function parseCustomModelData(customModelData: string | number): QualityValue<nu
     }));
 }
 
-interface ConfigParseResult {
-    success: boolean;
-    config?: BreweryConfig;
-    error?: {
-        stage: string;
-        message: string;
-        stack?: string;
-    };
-}
-
 function checkConfig(config: any) {
-    if (config === null) throw new Error(`config is null,\nyou probably pasted an empty string`);
+    if (config === null) throw new Error(`config is null`);
 
     if (typeof config !== "object")
         throw new Error(`config is not an object, it's a ${typeof config}\nfor some reason...`);
@@ -201,6 +209,13 @@ function checkConfig(config: any) {
 
 export function parseConfig(config: string): ConfigParseResult {
     let stage = "warming up";
+
+    if (YAML.parseDocument(config).contents === null) {
+        return {
+            state: ConfigParseResultState.EMPTY,
+        };
+    }
+
     try {
         stage = "parsing yaml";
         const parsed = YAML.parse(config);
@@ -258,7 +273,7 @@ export function parseConfig(config: string): ConfigParseResult {
         }
 
         return {
-            success: true,
+            state: ConfigParseResultState.SUCCESS,
             config: {
                 customItems,
                 recipes,
@@ -273,7 +288,7 @@ export function parseConfig(config: string): ConfigParseResult {
         } else console.error(error);
 
         return {
-            success: false,
+            state: ConfigParseResultState.ERROR,
             error: {
                 stage,
                 message,
